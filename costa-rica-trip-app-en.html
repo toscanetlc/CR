@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Pura Vida — Costa Rica 2026</title>
+<style>
+:root{
+  --jungle-deep:#132821;
+  --jungle:#1F3D31;
+  --canopy:#3E6B57;
+  --sand:#F3EBDA;
+  --paper:#FBF7EE;
+  --celeste:#2E9FB0;
+  --toucan:#E8622A;
+  --ink:#1B1B16;
+  --ink-soft:#5B5A4F;
+  --line:#E1D6BE;
+  --ok:#3E6B57;
+  --warn:#C1502E;
+  font-size:16px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--sand);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+}
+.serif{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+
+#app{max-width:640px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--sand);}
+
+/* ---- Top bar / trail ---- */
+.topbar{
+  background:var(--jungle-deep);
+  color:var(--paper);
+  padding:14px 16px 10px;
+  position:sticky;top:0;z-index:20;
+}
+.topbar-row{display:flex;align-items:baseline;justify-content:space-between;}
+.brand{font-family:Georgia,serif;font-size:1.05rem;letter-spacing:.02em;}
+.brand b{color:var(--toucan);}
+.trip-dates{font-size:.72rem;color:#C9D9CF;opacity:.85;}
+
+.trail{
+  display:flex;gap:2px;overflow-x:auto;margin-top:10px;padding-bottom:6px;
+  scrollbar-width:none;
+}
+.trail::-webkit-scrollbar{display:none;}
+.trail-stop{
+  flex:0 0 auto;padding:5px 10px;border-radius:999px;
+  font-size:.68rem;white-space:nowrap;border:1px solid rgba(255,255,255,.18);
+  color:#CFE3D8;cursor:pointer;background:transparent;
+}
+.trail-stop.active{background:var(--toucan);border-color:var(--toucan);color:#fff;font-weight:600;}
+.trail-stop.done{opacity:.55;}
+
+/* ---- Tabs ---- */
+.tabs{display:flex;background:var(--jungle);}
+.tab{flex:1;text-align:center;padding:9px 0;color:#BFD6CB;font-size:.78rem;cursor:pointer;border-bottom:3px solid transparent;}
+.tab.active{color:#fff;border-bottom-color:var(--toucan);font-weight:600;}
+
+/* ---- Main scroll area ---- */
+main{flex:1;padding:16px 16px 90px;}
+
+.daynum{font-family:Georgia,serif;font-size:2.6rem;line-height:1;color:var(--jungle);}
+.dayhead{display:flex;align-items:flex-end;gap:12px;margin-bottom:4px;}
+.dayhead .meta{padding-bottom:4px;}
+.dayhead .region{font-size:1.05rem;font-weight:700;color:var(--jungle);}
+.dayhead .date{font-size:.78rem;color:var(--ink-soft);}
+
+.travelbar{
+  display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--celeste);
+  background:#E6F4F1;border:1px solid #C9E5E0;padding:6px 10px;border-radius:8px;margin:10px 0 16px;
+}
+
+.card{
+  background:var(--paper);border:1px solid var(--line);border-radius:12px;
+  padding:14px 16px;margin-bottom:14px;
+}
+.card h3{
+  margin:0 0 10px;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--canopy);font-weight:700;
+}
+
+/* Hotel card = ticket stub look */
+.hotel-card{position:relative;border-style:dashed;}
+.hotel-name{font-family:Georgia,serif;font-size:1.15rem;color:var(--jungle);margin-bottom:2px;}
+.hotel-row{display:flex;justify-content:space-between;font-size:.82rem;margin-top:6px;color:var(--ink-soft);}
+.hotel-row a{color:var(--celeste);text-decoration:none;}
+.hotel-price{font-family:ui-monospace,monospace;font-size:.95rem;color:var(--jungle);font-weight:600;}
+.cancel-note{font-size:.72rem;color:var(--warn);margin-top:8px;}
+
+.highlights{font-size:.83rem;color:var(--ink-soft);line-height:1.5;margin-bottom:2px;}
+.highlights b{color:var(--ink);}
+
+/* Activities */
+.actgroup-label{font-size:.72rem;color:var(--toucan);font-weight:700;margin:10px 0 6px;text-transform:uppercase;letter-spacing:.05em;}
+.act{
+  display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);
+}
+.act:last-child{border-bottom:none;}
+.act input[type=checkbox]{width:19px;height:19px;margin-top:2px;accent-color:var(--canopy);flex:0 0 auto;}
+.act-body{flex:1;}
+.act-label{font-size:.9rem;line-height:1.35;}
+.act-label.done{color:var(--ink-soft);text-decoration:line-through;}
+.act-cost{font-size:.74rem;color:var(--celeste);font-family:ui-monospace,monospace;}
+.act-note{font-size:.76rem;color:var(--ink-soft);margin-top:2px;}
+
+.choice-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.choice-pill{
+  border:1px solid var(--canopy);color:var(--canopy);background:transparent;
+  border-radius:999px;padding:6px 12px;font-size:.78rem;cursor:pointer;
+}
+.choice-pill.selected{background:var(--canopy);color:#fff;}
+
+/* Budget form */
+.budget-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.budget-field label{display:block;font-size:.7rem;color:var(--ink-soft);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em;}
+.budget-field input{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:.95rem;
+  font-family:ui-monospace,monospace;background:#fff;
+}
+.budget-total{margin-top:12px;font-size:.85rem;display:flex;justify-content:space-between;font-weight:700;color:var(--jungle);}
+
+textarea.notes{
+  width:100%;min-height:64px;border:1px solid var(--line);border-radius:8px;padding:10px;
+  font-size:.87rem;font-family:inherit;resize:vertical;background:#fff;
+}
+
+/* Bottom nav */
+.bottomnav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:640px;
+  background:var(--jungle-deep);display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;z-index:30;
+}
+.navbtn{background:var(--canopy);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:.85rem;cursor:pointer;}
+.navbtn:disabled{opacity:.3;}
+.navcenter{color:#C9D9CF;font-size:.78rem;cursor:pointer;text-align:center;}
+
+/* Dashboard */
+.dash-stat{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);}
+.dash-stat:last-child{border-bottom:none;}
+.dash-stat .label{font-size:.82rem;color:var(--ink-soft);}
+.dash-stat .val{font-family:ui-monospace,monospace;font-weight:700;color:var(--jungle);}
+.bar-row{display:flex;align-items:center;gap:8px;font-size:.72rem;margin-bottom:6px;}
+.bar-row .lbl{width:64px;flex:0 0 auto;color:var(--ink-soft);}
+.bar-track{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;background:var(--celeste);}
+.bar-row .amt{width:56px;text-align:right;font-family:ui-monospace,monospace;flex:0 0 auto;}
+
+.daygrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
+.daygrid .g{
+  aspect-ratio:1;border-radius:8px;background:var(--paper);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;position:relative;
+}
+.daygrid .g.done{background:var(--canopy);color:#fff;border-color:var(--canopy);}
+.daygrid .g.current{outline:2px solid var(--toucan);}
+
+.setting-row{display:flex;gap:8px;align-items:center;margin-top:8px;}
+.setting-row input{flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:ui-monospace,monospace;}
+.smallbtn{background:var(--jungle);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:.78rem;cursor:pointer;}
+.smallbtn.outline{background:transparent;color:var(--jungle);border:1px solid var(--jungle);}
+
+.footer-note{font-size:.7rem;color:var(--ink-soft);text-align:center;padding:16px 0 4px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   DATA — one entry per day. Costs are per-person USD unless noted.
+   ========================================================= */
+const REGIONS = ["San José","San Gerardo de Dota","Corcovado / Drake","South Pacific (Uvita)",
+"Central Pacific (Tárcoles)","Santa Teresa","Monteverde","Tenorio","Arenal","Sarapiquí",
+"Tortuguero","Caribbean (Puerto Viejo)","Turrialba"];
+
+const DAYS = [
+{day:1,date:"Aug 13",region:"San José",
+ hotel:{name:"Hotel Presidente",loc:"Avenida Central, Calle 7, San José",phone:"+506 2010 0000",conf:"26021171726",price:"$152.55",cancel:"Cancellable before Aug 11"},
+ highlights:"Arrival at Juan Santamaría airport. Pick up rental car from Amigo Rent a Car (+506 2442 8585). Overnight in San José.",
+ activities:[
+  {label:"Activate Airalo eSIM on arrival",cost:""},
+  {label:"Plaza de la Cultura",cost:"free"},
+  {label:"Teatro Nacional (free facade / hall entry)",cost:"~$7"},
+  {label:"Museo del Oro Precolombino",cost:"~$16"},
+  {label:"Mercado Central",cost:"free"},
+ ]},
+{day:2,date:"Aug 14",region:"San Gerardo de Dota",
+ travel:{from:"San José",to:"San Gerardo de Dota",dur:"2h45",dist:"85 km"},
+ hotel:{name:"Lauraceas Lodge",loc:"San Gerardo de Dota",phone:"+506 2740 1006",conf:"6178478245",price:"$314.14 (2 nights)",cancel:"Cancellable before Aug 11"},
+ highlights:"Optional stop in Cartago (Basílica) and at Cerro de la Muerte (3,451m, view if clear skies).",
+ activities:[
+  {label:"Lodge trails (hummingbird garden)",cost:"free"},
+  {label:"Río Savegre waterfalls (5km round trip)",cost:"free",group:"savegre",note:"can be done today or tomorrow"},
+ ]},
+{day:3,date:"Aug 15",region:"San Gerardo de Dota",
+ highlights:"Early wake-up for quetzal spotting.",
+ activities:[
+  {label:"Guided Quetzal tour (5:15am departure)",cost:"$45/pers",group:"quetzal"},
+  {label:"Los Quetzales National Park (self-guided)",cost:"$10/pers",group:"quetzal"},
+  {label:"Río Savegre waterfalls (if not done the day before)",cost:"free",group:"savegre"},
+ ]},
+{day:4,date:"Aug 16",region:"Corcovado / Drake",
+ travel:{from:"San Gerardo de Dota",to:"Drake Bay",dur:"3h40 + 1h30 bateau",dist:"172 km"},
+ hotel:{name:"Finca Maresia",loc:"Drake Bay, Los Planes, Osa",phone:"+34 629 53 96 10",conf:"—",price:"$406.80 (3 nights, pay on site)",cancel:"Cancellable before Aug 3"},
+ highlights:"Secure parking in Sierpe (~$8\u201312/day). Boat Sierpe\u2192Drake at 11:30am/3:45pm ($20/pers one-way). No ATM in Drake \u2014 bring cash.",
+ activities:[
+  {label:"Sierpe parking (Oleaje Sereno / Don Jorge)",cost:"~$8-12/day"},
+  {label:"Boat Sierpe \u2192 Drake",cost:"$20/pers"},
+  {label:"Beach hike to Rio Claro / turtle station",cost:"free / boat $1-2"},
+ ]},
+{day:5,date:"Aug 17",region:"Corcovado / Drake",
+ highlights:"Full-day excursion \u2014 days 5 and 6 can be swapped depending on weather/booking.",
+ activities:[
+  {label:"La Sirena Station \u2014 Corcovado park (guide, 7h, lunch included)",cost:"$125/pers"},
+ ]},
+{day:6,date:"Aug 18",region:"Corcovado / Drake",
+ activities:[
+  {label:"Isla del Caño \u2014 snorkeling/diving (guide, 7h30, lunch included)",cost:"$108/pers"},
+  {label:"Beach hike Rincón\u2013San Josecito\u2013Drake (13km, self-guided)",cost:"free"},
+ ]},
+{day:7,date:"Aug 19",region:"South Pacific (Uvita)",
+ travel:{from:"Drake Bay",to:"Uvita",dur:"1h bateau + 1h15 route",dist:"62 km"},
+ hotel:{name:"Ibiza Tropical Beach Villas",loc:"Playa Uvita, Bahia Ballena",phone:"+506 8768 9160",conf:"6875173439",price:"$230.52 (2 nights)",cancel:"Cancellable before Aug 13"},
+ highlights:"Boat shuttle Drake\u2192Sierpe at 7:30am/2:30pm. Free public beaches: Ventanas, Piñuela, Hermosa (sunset).",
+ activities:[
+  {label:"Low tide \u2014 walk the Whale\u2019s Tail (Marino Ballena)",cost:"$6.78/pers",group:"ballena-walk",note:"do this on whichever day low tide falls during daylight hours"},
+ ]},
+{day:8,date:"Aug 20",region:"South Pacific (Uvita)",
+ activities:[
+  {label:"Nauyaca Waterfalls (entry + parking)",cost:"~$12.5/pers",group:"uvita-choice"},
+  {label:"Whale/dolphin watching boat tour",cost:"$80-95/pers",group:"uvita-choice"},
+  {label:"Whale\u2019s Tail if not done the day before",cost:"$6.78/pers",group:"ballena-walk"},
+ ]},
+{day:9,date:"Aug 21",region:"Central Pacific (Tárcoles)",
+ travel:{from:"Uvita",to:"Tárcoles",dur:"2h50",dist:"158 km"},
+ hotel:{name:"Finca Quietud",loc:"Tárcoles",phone:"+506 8871 7982",conf:"5502473217",price:"$142.38 (cash)",cancel:"check with host"},
+ highlights:"Free stop at Tárcoles Bridge (crocodiles, 15\u201320 min, don\u2019t go down to the riverbank).",
+ activities:[
+  {label:"Parc national Manuel Antonio",cost:"$20/pers",group:"central-choice"},
+  {label:"Carara National Park",cost:"$10/pers",group:"central-choice"},
+  {label:"Sunset cocktail \u2014 Villa Caletas",cost:"$$"},
+ ]},
+{day:10,date:"Aug 22",region:"Santa Teresa",
+ travel:{from:"Tárcoles",to:"Santa Teresa",dur:"~3h route + 1h30 ferry",dist:"150 km"},
+ hotel:{name:"Magic Place — Studio Blanco",loc:"Santa Teresa",phone:"+506 8826 6604",conf:"—",price:"$339 (3 nights, deposit €72.04)",cancel:"50% if cancelled 7\u201330 days before, 100% within 7 days"},
+ highlights:"Ferry Puntarenas\u2192Paquera (~$16.50/pers + car, book at quickpaycr.com).",
+ activities:[
+  {label:"Book the ferry (quickpaycr.com)",cost:"~$16.50/pers + car"},
+ ]},
+{day:11,date:"Aug 23",region:"Santa Teresa",
+ highlights:"Free day.",
+ activities:[
+  {label:"Surfing at Santa Teresa / Playa Hermosa",cost:"$"},
+  {label:"Cabo Blanco Reserve (closed Mon/Tue)",cost:"$12/pers"},
+  {label:"Curú Reserve",cost:"$12/pers"},
+ ]},
+{day:12,date:"Aug 24",region:"Santa Teresa",
+ highlights:"Free day.",
+ activities:[
+  {label:"Montezuma Waterfalls",cost:"free"},
+  {label:"Snorkeling Isla Tortuga",cost:"$$"},
+  {label:"Quad tour or bioluminescence kayaking",cost:"$$"},
+ ]},
+{day:13,date:"Aug 25",region:"Monteverde",
+ travel:{from:"Santa Teresa",to:"Monteverde",dur:"~5h (road or ferry)",dist:"210 km"},
+ hotel:{name:"Tityra Lodge",loc:"Monteverde",phone:"+506 6367 8312",conf:"5582950174",price:"$105.26 (−10% cash)",cancel:"Cancellable before Aug 23"},
+ highlights:"Ask Magic Place for the best route (road vs ferry).",
+ activities:[
+  {label:"Hummingbird Gallery + Café Colibrí",cost:"free"},
+  {label:"Ficus La Raíz (strangler fig)",cost:"free"},
+  {label:"Cerro Plano Viewpoint (sunset)",cost:"free"},
+  {label:"Guided night walk",cost:"~$30-40/pers"},
+ ]},
+{day:14,date:"Aug 26",region:"Tenorio",
+ travel:{from:"Monteverde",to:"Bijagua (Tenorio)",dur:"2h30",dist:"120 km"},
+ hotel:{name:"Finca-Amistad Cacao Lodge",loc:"Bijagua",phone:"+506 6048 3391",conf:"5902527756",price:"$277.64 (2 nights, cacao tour included)",cancel:"Cancellable before Aug 20"},
+ highlights:"Private reserves, no advance booking needed \u2014 choose based on mood.",
+ activities:[
+  {label:"Reserva Santa Elena",cost:"$20 ($14 student)",group:"monteverde-reserve"},
+  {label:"Reserva Bosque Nuboso Monteverde",cost:"$29",group:"monteverde-reserve"},
+  {label:"Reserva Curi-Cancha (guide recommended)",cost:"$25 / $55 guided",group:"monteverde-reserve"},
+  {label:"Cataratas El Tigre (waterfall hike)",cost:"$36-66",group:"monteverde-reserve"},
+  {label:"Selvatura Park (canopy, bridges)",cost:"$56",group:"monteverde-reserve"},
+  {label:"Cacao Tour (included at the hotel)",cost:"included"},
+ ]},
+{day:15,date:"Aug 27",region:"Tenorio",
+ highlights:"Check the weather in the morning (blue river).",
+ activities:[
+  {label:"Volcán Tenorio National Park \u2014 Rio Celeste (7.3km, 3-4h)",cost:"$14/pers"},
+  {label:"Rubber boot rental (rainy season)",cost:"~$4"},
+ ]},
+{day:16,date:"Aug 28",region:"Arenal",
+ travel:{from:"Bijagua",to:"La Fortuna",dur:"2h (via Katira)",dist:"80 km"},
+ hotel:{name:"Suwa Villa Arenal",loc:"La Fortuna",phone:"+506 8510-6530",conf:"5685272003",price:"$276.79 (3 nights)",cancel:"Cancellable before Aug 22"},
+ activities:[
+  {label:"El Salto (rope swing, river)",cost:"free"},
+  {label:"Mirador El Silencio Reserve",cost:"$10/pers"},
+  {label:"Night visit Arenal Oasis / Bogarin Trail",cost:"$50 / $20"},
+ ]},
+{day:17,date:"Aug 29",region:"Arenal",
+ activities:[
+  {label:"Mirador El Silencio Reserve",cost:"$10/pers",group:"arenal-matin"},
+  {label:"Arenal 1968 Trail (on foot / horse / quad)",cost:"$28 / $69 / $105",group:"arenal-matin"},
+  {label:"La Fortuna Waterfall (530 steps)",cost:"$20/pers"},
+  {label:"Sunset \u2014 Mirador Arenal (route 142)",cost:"free"},
+ ]},
+{day:18,date:"Aug 30",region:"Arenal",
+ activities:[
+  {label:"Mistico Hanging Bridges",cost:"$33 self-guided / $46 guided"},
+  {label:"Ecotermales Fortuna hot springs (+optional dinner)",cost:"$49 (+$29 dinner)"},
+ ]},
+{day:19,date:"Aug 31",region:"Sarapiquí",
+ travel:{from:"La Fortuna",to:"Sarapiquí",dur:"1h30",dist:"70 km"},
+ hotel:{name:"Villa Girasol — Finca Ecoorgánica",loc:"La Virgen, Sarapiquí",phone:"+506 8346 4885",conf:"5921408337",price:"$86.45",cancel:"Cancellable before Aug 16"},
+ activities:[
+  {label:"Río Sarapiquí Rafting (Class II-III)",cost:"$53-64/pers",group:"rafting"},
+  {label:"Río Sarapiquí Rafting (Class III-IV)",cost:"$65-75/pers",group:"rafting"},
+  {label:"Organic farm visit (included)",cost:"included"},
+ ]},
+{day:20,date:"Sep 1",region:"Tortuguero",
+ travel:{from:"Sarapiquí",to:"Tortuguero",dur:"2h30 route + 1h bateau",dist:"—"},
+ hotel:{name:"Mawamba Lodge",loc:"Canales de Tortuguero",phone:"+506 8978 9844",conf:"5263130693",price:"$234.85 (2 nights)",cancel:"Cancellable before Aug 25"},
+ highlights:"Parking at La Pavona (~$10/day). No ATM in Tortuguero.",
+ activities:[
+  {label:"La Pavona parking",cost:"~$10/day"},
+  {label:"Boat to Tortuguero",cost:"~$10/pers"},
+  {label:"Walk around Tortuguero village",cost:"free"},
+ ]},
+{day:21,date:"Sep 2",region:"Tortuguero",
+ highlights:"Buy the park entry ticket before boarding (valid all day).",
+ activities:[
+  {label:"Tortuguero National Park entry \u2014 Canales sector",cost:"$17/pers"},
+  {label:"Canal tour by kayak/canoe",cost:"$30-40/pers"},
+  {label:"Jaguar Trail",cost:"included with entry"},
+  {label:"Night turtle-watching tour (Jul-Oct)",cost:"$35/pers"},
+ ]},
+{day:22,date:"Sep 3",region:"Caribbean (Puerto Viejo)",
+ travel:{from:"Tortuguero",to:"Puerto Viejo",dur:"1h bateau + 3h route",dist:"200 km"},
+ hotel:{name:"La Paz del Caribe — Bungalow 5",loc:"Puerto Viejo, Talamanca",phone:"+506 8674 8698",conf:"WE84791770395980",price:"$759.36 (4 nights)",cancel:"Cancellable before Aug 2"},
+ highlights:"Return boat to La Pavona (5am/7am/9am/11am). Optional stop at Cahuita National Park along the way.",
+ activities:[
+  {label:"Return boat to La Pavona",cost:"~$10/pers"},
+ ]},
+{day:23,date:"Sep 4",region:"Caribbean (Puerto Viejo)",
+ highlights:"Free day.",
+ activities:[
+  {label:"Cahuita National Park",cost:"~$6/pers"},
+  {label:"Cocles / Chiquita / Punta Uva / Manzanillo beaches",cost:"free"},
+  {label:"Bike rental",cost:"$6/day"},
+ ]},
+{day:24,date:"Sep 5",region:"Caribbean (Puerto Viejo)",
+ highlights:"Free day.",
+ activities:[
+  {label:"Gandoca-Manzanillo Reserve (guide recommended)",cost:"~$10/pers"},
+  {label:"Jaguar Rescue Center",cost:"$29/pers"},
+  {label:"Surfboard rental",cost:"$15/day"},
+ ]},
+{day:25,date:"Sep 6",region:"Caribbean (Puerto Viejo)",
+ highlights:"Free day.",
+ activities:[
+  {label:"Bribri indigenous community visit",cost:"~$70-78/pers"},
+  {label:"Proyecto Ara (macaw sanctuary, 3-4pm)",cost:"$20/pers"},
+ ]},
+{day:26,date:"Sep 7",region:"Turrialba",
+ travel:{from:"Puerto Viejo",to:"Turrialba",dur:"4h",dist:"220 km"},
+ hotel:{name:"Casa Cúrcuma — Finca Iriká",loc:"Turrialba",phone:"+506 8762 6000",conf:"5736680879",price:"$64.18",cancel:"Cancellable before Sep 6"},
+ activities:[
+  {label:"Iriká coffee tour (optional)",cost:"$39.55/pers"},
+  {label:"Volcán Turrialba (optional, clear weather)",cost:"$"},
+ ]},
+{day:27,date:"Sep 8",region:"Turrialba",
+ travel:{from:"Turrialba",to:"Juan Santamaría Airport",dur:"2h30",dist:"90 km"},
+ highlights:"Return the rental car before 4pm (Amigo Alajuela, +506 2442 8585). Departure tax.",
+ activities:[
+  {label:"Coffee plantation visit + tasting",cost:"included/$"},
+  {label:"Departure tax",cost:"$29/pers"},
+ ]},
+];
+
+const ACCOMMODATION_TOTAL = 3391.25; // US$ prepaid, separate from daily budget
+
+/* =========================================================
+   STORAGE
+   ========================================================= */
+const STORE_KEY = "crtrip_v1";
+function loadStore(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {checks:{}, choices:{}, budget:{}, notes:{}, settings:{target: 2000}};
+}
+let STORE = loadStore();
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(STORE)); }
+
+/* =========================================================
+   STATE / RENDER
+   ========================================================= */
+let view = "day"; // "day" | "dashboard"
+let currentDay = 1;
+
+const app = document.getElementById("app");
+
+function actKey(day, idx){ return day+"_"+idx; }
+
+function render(){
+  app.innerHTML = "";
+  app.appendChild(renderTopbar());
+  app.appendChild(renderTabs());
+  const main = document.createElement("main");
+  if(view === "day"){
+    main.appendChild(renderDay(currentDay));
+  } else {
+    main.appendChild(renderDashboard());
+  }
+  app.appendChild(main);
+  app.appendChild(renderBottomNav());
+}
+
+function renderTopbar(){
+  const div = document.createElement("div");
+  div.className = "topbar";
+  div.innerHTML = `
+    <div class="topbar-row">
+      <div class="brand">Pura <b>Vida</b> — Costa Rica</div>
+      <div class="trip-dates">Aug 13 \u2013 Sep 8, 2026</div>
+    </div>
+    <div class="trail" id="trail"></div>
+  `;
+  const trail = div.querySelector("#trail");
+  REGIONS.forEach(r=>{
+    const firstDay = DAYS.find(d=>d.region===r).day;
+    const isActive = DAYS[currentDay-1].region === r;
+    const allDone = DAYS.filter(d=>d.region===r).every(d=> isDayDone(d.day));
+    const btn = document.createElement("button");
+    btn.className = "trail-stop"+(isActive?" active":"")+(allDone && !isActive?" done":"");
+    btn.textContent = r;
+    btn.onclick = ()=>{ currentDay = firstDay; view="day"; render(); };
+    trail.appendChild(btn);
+  });
+  return div;
+}
+
+function renderTabs(){
+  const div = document.createElement("div");
+  div.className = "tabs";
+  div.innerHTML = `
+    <div class="tab ${view==='day'?'active':''}" data-t="day">📅 Day</div>
+    <div class="tab ${view==='dashboard'?'active':''}" data-t="dashboard">📊 Summary</div>
+  `;
+  div.querySelectorAll(".tab").forEach(t=>{
+    t.onclick = ()=>{ view = t.dataset.t; render(); };
+  });
+  return div;
+}
+
+function isDayDone(day){
+  const d = DAYS[day-1];
+  if(!d.activities || d.activities.length===0) return false;
+  return d.activities.every((a,i)=> STORE.checks[actKey(day,i)]);
+}
+
+function dayBudget(day){
+  const b = STORE.budget[day] || {food:0,activities:0,transport:0,other:0};
+  return b;
+}
+function dayTotal(day){
+  const b = dayBudget(day);
+  return (+b.food||0)+(+b.activities||0)+(+b.transport||0)+(+b.other||0);
+}
+function tripTotal(){
+  let t=0; for(let i=1;i<=27;i++) t+=dayTotal(i); return t;
+}
+function categoryTotal(cat){
+  let t=0; for(let i=1;i<=27;i++) t+=(+dayBudget(i)[cat]||0); return t;
+}
+
+function renderDay(day){
+  const d = DAYS[day-1];
+  const wrap = document.createElement("div");
+
+  wrap.innerHTML = `
+    <div class="dayhead">
+      <div class="daynum">${String(d.day).padStart(2,"0")}</div>
+      <div class="meta">
+        <div class="region">${d.region}</div>
+        <div class="date">${d.date} 2026</div>
+      </div>
+    </div>
+  `;
+
+  if(d.travel){
+    const tb = document.createElement("div");
+    tb.className = "travelbar";
+    tb.innerHTML = `🚗 ${d.travel.from} → ${d.travel.to} · ${d.travel.dur}${d.travel.dist!=="—"?" · "+d.travel.dist:""}`;
+    wrap.appendChild(tb);
+  }
+
+  if(d.hotel){
+    const hc = document.createElement("div");
+    hc.className = "card hotel-card";
+    hc.innerHTML = `
+      <h3>🏨 Accommodation</h3>
+      <div class="hotel-name">${d.hotel.name}</div>
+      <div class="hotel-row"><span>${d.hotel.loc}</span></div>
+      <div class="hotel-row"><a href="tel:${d.hotel.phone.replace(/\\s+/g,'')}">${d.hotel.phone}</a><span class="hotel-price">${d.hotel.price}</span></div>
+      ${d.hotel.conf && d.hotel.conf!=="—" ? `<div class="hotel-row"><span>Confirmation #</span><span class="mono">${d.hotel.conf}</span></div>` : ""}
+      <div class="cancel-note">⚠ ${d.hotel.cancel}</div>
+    `;
+    wrap.appendChild(hc);
+  }
+
+  if(d.highlights){
+    const hi = document.createElement("div");
+    hi.className = "card";
+    hi.innerHTML = `<h3>📍 Good to know</h3><div class="highlights">${d.highlights}</div>`;
+    wrap.appendChild(hi);
+  }
+
+  // Activities
+  const ac = document.createElement("div");
+  ac.className = "card";
+  ac.innerHTML = `<h3>✅ Today's activities</h3>`;
+  const groups = {};
+  const singles = [];
+  (d.activities||[]).forEach((a,i)=>{
+    if(a.group){ (groups[a.group] = groups[a.group]||[]).push({...a, idx:i}); }
+    else singles.push({...a, idx:i});
+  });
+
+  Object.keys(groups).forEach(g=>{
+    const items = groups[g];
+    const label = document.createElement("div");
+    label.className = "actgroup-label";
+    label.textContent = "Choose one";
+    ac.appendChild(label);
+    const row = document.createElement("div");
+    row.className = "choice-row";
+    items.forEach(it=>{
+      const pill = document.createElement("button");
+      const selected = STORE.choices[g+"_"+day] === it.idx;
+      pill.className = "choice-pill"+(selected?" selected":"");
+      pill.textContent = it.label + (it.cost?" · "+it.cost:"");
+      pill.onclick = ()=>{ STORE.choices[g+"_"+day] = it.idx; save(); render(); };
+      row.appendChild(pill);
+    });
+    ac.appendChild(row);
+    // show checkbox only for the selected option
+    const selIdx = STORE.choices[g+"_"+day];
+    if(selIdx !== undefined){
+      const chosen = items.find(it=>it.idx===selIdx);
+      ac.appendChild(renderActRow(day, chosen));
+    }
+  });
+
+  singles.forEach(a=>{
+    ac.appendChild(renderActRow(day, a));
+  });
+
+  if(!d.activities || d.activities.length===0){
+    ac.innerHTML += `<div class="highlights">Nothing planned \u2014 free day / transit.</div>`;
+  }
+  wrap.appendChild(ac);
+
+  // Budget
+  const bud = document.createElement("div");
+  bud.className = "card";
+  const b = dayBudget(day);
+  bud.innerHTML = `
+    <h3>💵 Today's expenses (USD)</h3>
+    <div class="budget-grid">
+      <div class="budget-field"><label>Food</label><input type="number" min="0" step="0.01" data-cat="food" value="${b.food||''}" placeholder="0"></div>
+      <div class="budget-field"><label>Activities</label><input type="number" min="0" step="0.01" data-cat="activities" value="${b.activities||''}" placeholder="0"></div>
+      <div class="budget-field"><label>Transport</label><input type="number" min="0" step="0.01" data-cat="transport" value="${b.transport||''}" placeholder="0"></div>
+      <div class="budget-field"><label>Other</label><input type="number" min="0" step="0.01" data-cat="other" value="${b.other||''}" placeholder="0"></div>
+    </div>
+    <div class="budget-total"><span>Day total</span><span>$${dayTotal(day).toFixed(2)}</span></div>
+  `;
+  bud.querySelectorAll("input").forEach(inp=>{
+    inp.oninput = ()=>{
+      STORE.budget[day] = STORE.budget[day] || {};
+      STORE.budget[day][inp.dataset.cat] = inp.value;
+      save();
+      bud.querySelector(".budget-total span:last-child").textContent = "$"+dayTotal(day).toFixed(2);
+    };
+  });
+  wrap.appendChild(bud);
+
+  // Notes
+  const nt = document.createElement("div");
+  nt.className = "card";
+  nt.innerHTML = `<h3>📝 Notes</h3><textarea class="notes" placeholder="Impressions, tips, changes of plan...">${STORE.notes[day]||""}</textarea>`;
+  nt.querySelector("textarea").oninput = (e)=>{ STORE.notes[day]=e.target.value; save(); };
+  wrap.appendChild(nt);
+
+  return wrap;
+}
+
+function renderActRow(day, a){
+  const row = document.createElement("div");
+  row.className = "act";
+  const key = actKey(day, a.idx);
+  const checked = !!STORE.checks[key];
+  row.innerHTML = `
+    <input type="checkbox" ${checked?"checked":""}>
+    <div class="act-body">
+      <div class="act-label ${checked?'done':''}">${a.label}</div>
+      ${a.note?`<div class="act-note">${a.note}</div>`:""}
+      ${a.cost?`<div class="act-cost">${a.cost}</div>`:""}
+    </div>
+  `;
+  row.querySelector("input").onchange = (e)=>{
+    STORE.checks[key] = e.target.checked;
+    save();
+    row.querySelector(".act-label").classList.toggle("done", e.target.checked);
+  };
+  return row;
+}
+
+function renderDashboard(){
+  const wrap = document.createElement("div");
+
+  const doneCount = DAYS.filter(d=>isDayDone(d.day)).length;
+  const spent = tripTotal();
+  const target = STORE.settings.target || 0;
+
+  const s1 = document.createElement("div");
+  s1.className = "card";
+  s1.innerHTML = `
+    <h3>Overview</h3>
+    <div class="dash-stat"><span class="label">Days completed</span><span class="val">${doneCount} / 27</span></div>
+    <div class="dash-stat"><span class="label">Accommodation (prepaid)</span><span class="val">$${ACCOMMODATION_TOTAL.toFixed(2)}</span></div>
+    <div class="dash-stat"><span class="label">Daily expenses logged</span><span class="val">$${spent.toFixed(2)}</span></div>
+    <div class="dash-stat"><span class="label">Estimated trip total</span><span class="val">$${(spent+ACCOMMODATION_TOTAL).toFixed(2)}</span></div>
+    <div class="dash-stat"><span class="label">Daily budget target</span><span class="val">$${target.toFixed(2)}</span></div>
+    <div class="dash-stat"><span class="label">Remaining vs target</span><span class="val" style="color:${spent>target?'var(--warn)':'var(--ok)'}">$${(target-spent).toFixed(2)}</span></div>
+    <div class="setting-row">
+      <input type="number" id="targetInput" value="${target}" placeholder="Total daily budget ($)">
+      <button class="smallbtn" id="setTarget">Set</button>
+    </div>
+  `;
+  wrap.appendChild(s1);
+  s1.querySelector("#setTarget").onclick = ()=>{
+    STORE.settings.target = +s1.querySelector("#targetInput").value || 0;
+    save(); render();
+  };
+
+  const s2 = document.createElement("div");
+  s2.className = "card";
+  s2.innerHTML = `<h3>By category</h3>`;
+  const cats = [["food","Food"],["activities","Activities"],["transport","Transport"],["other","Other"]];
+  const maxCat = Math.max(1, ...cats.map(c=>categoryTotal(c[0])));
+  cats.forEach(([key,label])=>{
+    const val = categoryTotal(key);
+    const row = document.createElement("div");
+    row.className = "bar-row";
+    row.innerHTML = `<div class="lbl">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${(val/maxCat*100)||0}%"></div></div><div class="amt">$${val.toFixed(0)}</div>`;
+    s2.appendChild(row);
+  });
+  wrap.appendChild(s2);
+
+  const s3 = document.createElement("div");
+  s3.className = "card";
+  s3.innerHTML = `<h3>All days</h3><div class="daygrid" id="dg"></div>`;
+  wrap.appendChild(s3);
+  const dg = s3.querySelector("#dg");
+  DAYS.forEach(d=>{
+    const g = document.createElement("div");
+    g.className = "g"+(isDayDone(d.day)?" done":"")+(d.day===currentDay?" current":"");
+    g.textContent = d.day;
+    g.onclick = ()=>{ currentDay = d.day; view="day"; render(); };
+    dg.appendChild(g);
+  });
+
+  const s4 = document.createElement("div");
+  s4.className = "card";
+  s4.innerHTML = `
+    <h3>Backup</h3>
+    <div class="highlights">This data stays only on this device (localStorage). Export a backup copy regularly.</div>
+    <div class="setting-row">
+      <button class="smallbtn" id="exportBtn">⬇ Export (.json)</button>
+      <button class="smallbtn outline" id="importBtn">⬆ Import</button>
+    </div>
+    <input type="file" id="fileInput" accept="application/json" style="display:none">
+  `;
+  wrap.appendChild(s4);
+  s4.querySelector("#exportBtn").onclick = ()=>{
+    const blob = new Blob([JSON.stringify(STORE,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "costa-rica-trip-backup.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  const fileInput = s4.querySelector("#fileInput");
+  s4.querySelector("#importBtn").onclick = ()=> fileInput.click();
+  fileInput.onchange = (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        STORE = JSON.parse(reader.result);
+        save(); render();
+      }catch(err){ alert("Invalid file."); }
+    };
+    reader.readAsText(file);
+  };
+
+  return wrap;
+}
+
+function renderBottomNav(){
+  const div = document.createElement("div");
+  div.className = "bottomnav";
+  if(view === "day"){
+    div.innerHTML = `
+      <button class="navbtn" id="prevBtn" ${currentDay<=1?"disabled":""}>◀ Day ${currentDay-1}</button>
+      <div class="navcenter" id="gridBtn">Day ${currentDay} / 27</div>
+      <button class="navbtn" id="nextBtn" ${currentDay>=27?"disabled":""}>Day ${currentDay+1} ▶</button>
+    `;
+    div.querySelector("#prevBtn").onclick = ()=>{ if(currentDay>1){currentDay--; render();} };
+    div.querySelector("#nextBtn").onclick = ()=>{ if(currentDay<27){currentDay++; render();} };
+    div.querySelector("#gridBtn").onclick = ()=>{ view="dashboard"; render(); };
+  } else {
+    div.innerHTML = `<div class="navcenter" style="width:100%;text-align:center;">Trip summary \u2014 tap a day to go back</div>`;
+  }
+  return div;
+}
+
+render();
+</script>
+</body>
+</html>
